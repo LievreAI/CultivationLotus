@@ -24,6 +24,7 @@ let defaultConfig: Configuration
  */
 export interface Configuration {
   game_install_path: string
+  game_shortcut_path?: string
   java_path: string
   close_action: number
   startup_launch: boolean
@@ -56,7 +57,9 @@ export async function setConfigOption<K extends keyof Configuration>(key: K, val
 
 export async function getConfigOption<K extends keyof Configuration>(key: K): Promise<Configuration[K]> {
   const config = await getConfig()
-  return config[key] === null || config[key] === undefined ? defaultConfig[key] : config[key]
+  const defaults = defaultConfig
+
+  return config[key] === null || config[key] === undefined ? defaults[key] : config[key]
 }
 
 export async function getConfig() {

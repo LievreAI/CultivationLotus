@@ -2,7 +2,6 @@
   all(not(debug_assertions), target_os = "windows"),
   windows_subsystem = "windows"
 )]
-#![deny(clippy::all, unused)]
 
 use file_helpers::dir_exists;
 use once_cell::sync::Lazy;
@@ -16,7 +15,6 @@ use tauri::async_runtime::block_on;
 use std::thread;
 use sysinfo::{System, SystemExt};
 
-#[cfg(windows)]
 use crate::admin::reopen_as_admin;
 
 mod admin;
@@ -42,7 +40,7 @@ fn has_arg(args: &[String], arg: &str) -> bool {
 
 async fn arg_handler(args: &[String]) {
   if has_arg(args, "--proxy") {
-    let mut pathbuf = data_dir().unwrap();
+    let mut pathbuf = tauri::api::path::data_dir().unwrap();
     pathbuf.push("LotusCultivation");
     pathbuf.push("ca");
 
@@ -58,7 +56,6 @@ fn main() {
     println!("You running as a non-elevated user. Some stuff will almost definitely not work.");
     println!("===============================================================================");
 
-    #[cfg(windows)]
     reopen_as_admin();
   }
 
@@ -70,7 +67,7 @@ fn main() {
       .to_str()
       .unwrap(),
   ) {
-    fs::create_dir_all(data_dir().unwrap().join("LotusCultivation")).unwrap();
+    fs::create_dir_all(&data_dir().unwrap().join("LotusCultivation")).unwrap();
   }
 
   // Always set CWD to the location of the executable.
@@ -163,7 +160,7 @@ fn enable_process_watcher(window: tauri::Window, process: String) {
 
   thread::spawn(move || {
     // Initial sleep for 8 seconds, since running 20 different injectors or whatever can take a while
-    std::thread::sleep(std::time::Duration::from_secs(10));
+    thread::sleep(std::time::Duration::from_secs(10));
 
     let mut system = System::new_all();
 
@@ -228,13 +225,13 @@ async fn get_theme_list(data_dir: String) -> Vec<HashMap<String, String>> {
 
   // Ensure folder exists
   if !std::path::Path::new(&theme_loc).exists() {
-    std::fs::create_dir_all(&theme_loc).unwrap();
+    fs::create_dir_all(&theme_loc).unwrap();
   }
 
   // Read each index.json folder in each theme folder
   let mut themes = Vec::new();
 
-  for entry in std::fs::read_dir(&theme_loc).unwrap() {
+  for entry in fs::read_dir(&theme_loc).unwrap() {
     let entry = entry.unwrap();
     let path = entry.path();
 

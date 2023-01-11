@@ -13,6 +13,7 @@ pub fn run_program(path: String, args: Option<String>) {
 
 #[tauri::command]
 pub fn run_program_relative(path: String, args: Option<String>) {
+  println!("{}", path);
   // Save the current working directory
   let cwd = std::env::current_dir().unwrap();
 
@@ -23,11 +24,10 @@ pub fn run_program_relative(path: String, args: Option<String>) {
   // Set new working directory
   std::env::set_current_dir(&path_buf).unwrap();
 
-  // Without unwrap_or, this can crash when UAC prompt is denied
   open::that(format!("{} {}", &path, args.unwrap_or_else(|| "".into()))).unwrap_or(());
 
   // Restore the original working directory
-  std::env::set_current_dir(cwd).unwrap();
+  std::env::set_current_dir(&cwd).unwrap();
 }
 
 #[tauri::command]
@@ -52,7 +52,7 @@ pub fn run_command(program: &str, args: Vec<&str>, relative: Option<bool>) {
     cmd(prog, args).run().unwrap();
 
     // Restore the original working directory
-    std::env::set_current_dir(cwd).unwrap();
+    std::env::set_current_dir(&cwd).unwrap();
   });
 }
 
